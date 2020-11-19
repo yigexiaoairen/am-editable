@@ -11,7 +11,7 @@ export interface EditableContextType<R = any> {
   handleEdit: (key: React.Key) => void;
   settingId?: React.Key;
   multiple?: boolean;
-  isSetting?: boolean; // 单行编辑的时候是否，有选项正在编辑
+  isSetting?: boolean; // 单行编辑的时候是否有选项正在编辑
 }
 export interface EditableRowContextType {
   form: FormInstance;

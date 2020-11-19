@@ -29,10 +29,16 @@ const EditableRow: React.FC<EditableRowProps> = ({
   const {
     fieldNames,
     setRowsData,
+    isSetting,
+    multiple,
+    settingId,
   } = useContext(EditableContext);
 
   useEffect(() => {
-    if (!isEqual(recordPreRef.current, record)) {
+    if (
+      (!isEqual(recordPreRef.current, record) && multiple) ||
+      (!multiple && settingId === record?.editable_id)
+    ) {
       const resetFields = fieldNames.filter(name => {
         // 如果新的数据里面没有值，就重置当前字段，防止表格长度变化（删除、新增数据）的时候表单保留旧值；
         return !has(record, name);
@@ -42,12 +48,18 @@ const EditableRow: React.FC<EditableRowProps> = ({
         return !isEqual(get(record, name), get(recordPreRef.current, name));
       });
       form.resetFields(resetFields);
-      form.setFieldsValue(pick(record, setFieldsName));
+      if (multiple) {
+        // 多行编辑模式只需要更新当前行变化的数据；
+        form.setFieldsValue(pick(record, setFieldsName));
+      } else {
+        // 单行编辑，当编辑某行时，必须设置所有的记录值；因为form可能记录上次未保存的数据，不更新所有有数据的字段会有问题
+        form.setFieldsValue(pick(record, fieldNames));
+      }
     }
 
     // 更新保存上一个记录值；
     recordPreRef.current = record;
-  }, [record]);
+  }, [record, isSetting, multiple]);
   return (
     <Form
       name={`editable_${index! + 1}_`}

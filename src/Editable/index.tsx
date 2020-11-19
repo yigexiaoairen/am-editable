@@ -11,7 +11,7 @@ import { EditableContext } from './context';
 import { useEditableState } from './hooks';
 import EditableRow, { onRowValuesChangeType } from './EditableRow';
 import EditableCell, { EditableCellProps } from './EditableCell';
-import { OptionDelete, OptionEdit, OptionSave } from './options';
+import { OptionDelete, OptionEdit, OptionCancel, OptionSave } from './options';
 
 export interface actionRefType<R = any> {
   setRowsData: (rowData: R, rowIndex: number) => void;
@@ -43,6 +43,8 @@ export interface EditableTableProps<R = any> {
   editBtnText?: string; // 编辑按钮文案；
   saveBtnProps?: ButtonProps; // 保存按钮配置选项
   saveBtnText?: string; // 保存按钮文案；
+  cancelBtnProps?: ButtonProps; // 取消按钮配置选项
+  cancelBtnText?: string; // 取消按钮文案；
   hideAddBtn?: boolean;
   addBtnProps?: ButtonProps; // 新增按钮配置选项；
   addBtnText?: React.ReactNode; // 新增按钮配置文案；
@@ -72,12 +74,6 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
     onChange,
     defaultData,
     getActionRef,
-    deleteBtnProps,
-    deleteBtnText,
-    editBtnProps,
-    editBtnText,
-    saveBtnProps,
-    saveBtnText,
     hideAddBtn = false,
     addBtnProps,
     addBtnText,
@@ -170,30 +166,31 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
       title: '操作',
       render: (_, row) => {
         let optionsNode = [
+          <OptionSave
+            key="option_delete"
+            id={row.editable_id}
+            buttonProps={props.saveBtnProps}
+            buttonText={props.saveBtnText}
+          />,
+          <OptionEdit
+            key="option_cancel"
+            id={row.editable_id}
+            buttonProps={props.editBtnProps}
+            buttonText={props.editBtnText}
+          />,
           <OptionDelete
             key="option_delete"
             id={row.editable_id}
-            buttonProps={deleteBtnProps}
-            buttonText={deleteBtnText}
+            buttonProps={props.deleteBtnProps}
+            buttonText={props.deleteBtnText}
+          />,
+          <OptionCancel
+            key="option_cancel"
+            id={row.editable_id}
+            buttonProps={props.cancelBtnProps}
+            buttonText={props.cancelBtnText}
           />
         ];
-        if (!multiple && settingId === row.editable_id) {
-          optionsNode.unshift(<OptionSave
-            key="option_edit"
-            id={row.editable_id}
-            buttonProps={saveBtnProps}
-            buttonText={saveBtnText}
-          />);
-        } else if (!multiple) {
-          optionsNode.unshift(<OptionEdit
-            key="option_edit"
-            id={row.editable_id}
-            editBtnProps={editBtnProps}
-            editBtnText={editBtnText}
-            saveBtnProps={saveBtnProps}
-            saveBtnText={saveBtnText}
-          />)
-        }
         if (isFunction(optionRender)) {
           return optionRender(row, {
             delete: optionsNode[0],

@@ -12,21 +12,21 @@ const OptionDelete: React.FC<OptionComponentProps> = (props) => {
     buttonText
   } = props;
 
-  const { handleDelete, multiple, isSetting, settingId } = useContext(EditableContext);
+  const { handleEdit, isSetting, multiple, settingId } = useContext(EditableContext);
 
-  return isSetting && settingId === id ? null : <Popconfirm
-    title="确认要删除当前行吗？"
+  const cancel = () => {
+    handleEdit(-1);
+  }
+
+  return !multiple && isSetting && settingId === id ? <Popconfirm
+    title="确认要取消编辑？"
     okText="确定"
     cancelText="取消"
     onConfirm={() => {
-      handleDelete(id);
+      cancel();
     }}>
-    <Button
-      size="small"
-      {...buttonProps}
-      disabled={!multiple && isSetting}
-    >{buttonText || '删除'}</Button>
-  </Popconfirm>;
+    <Button size="small" {...buttonProps}>{buttonText || '取消'}</Button>
+  </Popconfirm> : null;
 }
 
 export default OptionDelete;

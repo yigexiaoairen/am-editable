@@ -92,6 +92,8 @@ const EditableCell: React.FC<EditableCellProps> = ({
         ...fieldNode.props,
         [triggerStr]: (val: any) => {
           if (isFunction(fieldNode.props[triggerStr])) fieldNode.props[triggerStr](val);
+          // 单行编辑模式通过保存按钮保存内容；
+          if (!multiple) return;
           if (triggerStr !== 'onChange') {
             save();
           } else if (has(val, 'target.value')) {
