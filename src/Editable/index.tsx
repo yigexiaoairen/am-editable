@@ -16,6 +16,8 @@ import { OptionDelete, OptionEdit, OptionCancel, OptionSave } from './options';
 export interface actionRefType<R = any> {
   setRowsData: (rowData: R, rowIndex: number) => void;
   handleAdd: (v?: R) => void;
+  handleDelete: (key: React.Key) => void;
+  handleEdit: (key: React.Key) => void;
 }
 
 export type optionExtraElementType = React.ReactElement | React.ReactElement[];
@@ -90,6 +92,8 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
   const actionRef = useRef<actionRefType>({
     setRowsData: () => {},
     handleAdd: () => {},
+    handleDelete: () => {},
+    handleEdit: () => {},
   });
 
    // 区分设置value为undefined和未设置值的情况
@@ -113,6 +117,8 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
     assign(actionRef.current, {
       handleAdd,
       setRowsData,
+      handleDelete,
+      handleEdit,
     })
   }, [handleAdd, setRowsData]);
   useEffect(() => {
@@ -259,13 +265,15 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
           showAddBtn && <Button
             block
             type="dashed"
-            style={{
-              marginBottom: 16,
-              marginTop: 16,
-            }}
+            disabled={!multiple && isSetting}
             {
               ...addBtnProps
             }
+            style={{
+              marginBottom: 16,
+              marginTop: 16,
+              ...addBtnProps?.style,
+            }}
             onClick={(e) => {
               if (isFunction(addBtnProps?.onClick)) {
                 addBtnProps!.onClick(e);

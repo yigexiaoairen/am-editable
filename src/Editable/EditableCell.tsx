@@ -1,6 +1,6 @@
 import React, { useState, useRef, useContext, useEffect } from 'react';
 import { FormInstance, FormItemProps } from 'antd/lib/form';
-import { isFunction, has, debounce } from 'lodash';
+import { isFunction, has, debounce, assign } from 'lodash';
 
 import {
   Input,
@@ -9,6 +9,7 @@ import {
 
 import { EditableRowContext, EditableContext } from './context';
 import FieldWrap from './FieldWrap';
+import { NamePath } from 'antd/lib/form/interface';
 
 interface RFIOptionType<R = any,> {
   value: Partial<R>[];
@@ -49,6 +50,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
 }) => {
   const inputRef = useRef<Input>(null);
   const {form} = useContext(EditableRowContext);
+  const formRef = useRef<FormInstance>({...form});
   const {
     multiple,
     settingId,
@@ -63,6 +65,30 @@ const EditableCell: React.FC<EditableCellProps> = ({
     }, rowIndex);
   }, 300);
 
+  useEffect(() => {
+    assign(formRef.current, {
+      ...form,
+      setFieldsValue: (values: any) => {
+        form.setFieldsValue(values);
+        // 多行编辑自动更新数据；单行编辑需要手动保存数据；
+        if (multiple) {
+          setRowsData({
+            ...values,
+          }, rowIndex);
+        }
+      },
+      resetFields: (fields?: NamePath[]) => {
+        form.resetFields(fields);
+        // 多行编辑自动更新数据；单行编辑需要手动保存数据；
+        if (multiple) {
+          setRowsData({
+            ...form.getFieldsValue(),
+          }, rowIndex);
+        }
+      }
+    });
+  }, [rowIndex, setRowsData]);
+
   let childNode = children;
   let fieldNode = <Input autoComplete="off" ref={inputRef} />;
 
@@ -74,7 +100,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
             value: val,
             onChange: onChangeB,
             rowIndex,
-          }, form);
+          }, formRef.current);
         }
       } />
   }
