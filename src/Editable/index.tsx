@@ -27,6 +27,7 @@ export interface FieldType<RecordType = any, k extends keyof RecordType = any> e
   title: string;
   id: k | React.Key; // 当前列对应字段名
   formItemProps: FormItemProps<Partial<RecordType>>;
+  formFieldProps: object;
   column: ColumnType<RecordType>;
   children?: FieldType<RecordType, k>[];
   renderFormInput: () => React.ReactNode;
@@ -36,6 +37,7 @@ export interface FieldType<RecordType = any, k extends keyof RecordType = any> e
 export interface EditableTableProps<R = any> {
   fields: FieldType[];
   value?: R[];
+  defaultValue?: R[]; // 表格默认数据
   onChange?: (value: R[]) => void;
   defaultData?: Partial<R>;
   getActionRef?: (p: React.MutableRefObject<actionRefType>) => void;
@@ -60,6 +62,9 @@ export interface EditableTableProps<R = any> {
   // 自定义操作选项的内容
   optionRender?: (r: R, opt: {
     delete: React.ReactElement; // 删除选项的元素；
+    edit: React.ReactElement; // 编辑选项的元素；
+    cancel: React.ReactElement; // 取消选项的元素；
+    save: React.ReactElement; // 保存选项的元素；
   }) => React.ReactChild;
   multiple?: boolean; // 是否开启多行编辑功能
 }
@@ -72,6 +77,7 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
   const {
     tableProps,
     fields,
+    defaultValue,
     value,
     onChange,
     defaultData,
@@ -107,6 +113,7 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
       isSetting,
     } = useEditableState({
     value: has(props, 'value') && !value ? [] : value,
+    defaultValue,
     defaultData,
     onChange,
     max,
@@ -151,6 +158,7 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
           'editable',
           'title',
           'renderFormInput',
+          'formFieldProps',
           'trigger',
         ]),
         formItemProps,
@@ -173,13 +181,13 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
       render: (_, row) => {
         let optionsNode = [
           <OptionSave
-            key="option_delete"
+            key="option_save"
             id={row.editable_id}
             buttonProps={props.saveBtnProps}
             buttonText={props.saveBtnText}
           />,
           <OptionEdit
-            key="option_cancel"
+            key="option_edit"
             id={row.editable_id}
             buttonProps={props.editBtnProps}
             buttonText={props.editBtnText}
@@ -199,7 +207,10 @@ const EditableTable: React.FC<EditableTableProps> = (props) => {
         ];
         if (isFunction(optionRender)) {
           return optionRender(row, {
-            delete: optionsNode[0],
+            delete: optionsNode[2],
+            edit: optionsNode[1],
+            cancel: optionsNode[3],
+            save: optionsNode[0],
           });
         }
         if (isFunction(optionExtraBefore)) {

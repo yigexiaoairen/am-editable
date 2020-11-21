@@ -1,6 +1,6 @@
 
-import React, { useContext, useEffect, useRef } from 'react';
-import { isEqual, get, pick, has, isNumber } from 'lodash';
+import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { isEqual, get, pick, has, concat } from 'lodash';
 
 import { Form } from 'antd';
 
@@ -33,6 +33,16 @@ const EditableRow: React.FC<EditableRowProps> = ({
     multiple,
     settingId,
   } = useContext(EditableContext);
+  const waitSaveNamesRef = useRef<React.Key[]>([]);
+  const addWaitSaveName = useCallback((name: React.Key) => {
+    if (name && waitSaveNamesRef.current.findIndex(n => n === name) === -1) {
+      waitSaveNamesRef.current.push(name);
+    }
+  }, []);
+  const removeWaitSaveName = useCallback((name: React.Key) => {
+    const index = waitSaveNamesRef.current.findIndex(n => n === name);
+    if (index >= 0) waitSaveNamesRef.current.splice(index, 1);
+  }, []);
 
   useEffect(() => {
     if (
@@ -41,11 +51,14 @@ const EditableRow: React.FC<EditableRowProps> = ({
     ) {
       const resetFields = fieldNames.filter(name => {
         // 如果新的数据里面没有值，就重置当前字段，防止表格长度变化（删除、新增数据）的时候表单保留旧值；
-        return !has(record, name);
+        return !has(record, name) &&
+          !isEqual(get(record, name), get(recordPreRef.current, name)) &&
+          waitSaveNamesRef.current.findIndex(n => n === name) === -1;
       });
       // 当行数据变化时，更新变化的数据；
       const setFieldsName = fieldNames.filter(name => {
-        return !isEqual(get(record, name), get(recordPreRef.current, name));
+        return !isEqual(get(record, name), get(recordPreRef.current, name)) &&
+          waitSaveNamesRef.current.findIndex(n => n === name) === -1;
       });
       form.resetFields(resetFields);
       if (multiple) {
@@ -79,7 +92,12 @@ const EditableRow: React.FC<EditableRowProps> = ({
         }
       }}
       component={false}>
-      <EditableRowContext.Provider value={{form}}>
+      <EditableRowContext.Provider value={{
+        form,
+        waitSaveNames: waitSaveNamesRef.current,
+        addWaitSaveName,
+        removeWaitSaveName,
+      }}>
         <tr {...props} />
       </EditableRowContext.Provider>
     </Form>

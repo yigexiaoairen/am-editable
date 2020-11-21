@@ -1,7 +1,8 @@
 import { defineConfig } from 'dumi';
 
 const config = defineConfig({
-  title: 'dumi',
+  mode: 'site',
+  title: 'am-editable',
   outputPath: 'docs-dist',
   // more config: https://d.umijs.org/config,
   theme: {
@@ -17,7 +18,18 @@ const config = defineConfig({
       },
       'antd',
     ],
-  ]
+  ],
+  // menus: {
+  //   '/guide': {
+  //     title: '指南',
+  //     children: [
+  //       'guide.md'
+  //     ]
+  //   }
+  // },
+  // navs: [
+  //   { title: 'GitHub', path: 'https://github.com/yigexiaoairen/am-editable' },
+  // ]
 });
 
 export default config;

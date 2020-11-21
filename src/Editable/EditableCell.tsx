@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext, useEffect } from 'react';
+import React, { useCallback, useRef, useContext, useEffect } from 'react';
 import { FormInstance, FormItemProps } from 'antd/lib/form';
 import { isFunction, has, debounce, assign } from 'lodash';
 
@@ -30,6 +30,7 @@ export interface EditableCellProps<Record = any,> {
   handleSave: (values: any) => void;
   renderFormInput?: renderFormInput;
   formItemProps?: FormItemProps;
+  formFieldProps?: object;
   setRowsData: (rowData: any, rowIndex: number) => void;
   trigger?: 'onChange' | 'onBlur'; // 数据保存的时机；
 }
@@ -43,13 +44,18 @@ const EditableCell: React.FC<EditableCellProps> = ({
   handleSave,
   renderFormInput,
   formItemProps,
+  formFieldProps,
   rowIndex,
   setRowsData,
   trigger,
   ...restProps
 }) => {
   const inputRef = useRef<Input>(null);
-  const {form} = useContext(EditableRowContext);
+  const {
+    form,
+    addWaitSaveName,
+    removeWaitSaveName,
+  } = useContext(EditableRowContext);
   const formRef = useRef<FormInstance>({...form});
   const {
     multiple,
@@ -58,12 +64,17 @@ const EditableCell: React.FC<EditableCellProps> = ({
   const name = formItemProps?.name || dataIndex;
   const triggerStr = typeof trigger === 'string' ? trigger : 'onChange';
 
-  const save = debounce(async (v?: any) => {
+  const saveFun = useCallback(debounce(async (v?: any) => {
     const val = v || form.getFieldValue(name);
+    removeWaitSaveName(name as React.Key);
     setRowsData({
       [name as string]: val
     }, rowIndex);
-  }, 300);
+  }, 300), []);
+  const save = (v?: any) => {
+    addWaitSaveName(name as React.Key);
+    saveFun(v);
+  }
 
   useEffect(() => {
     assign(formRef.current, {
@@ -90,7 +101,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
   }, [rowIndex, setRowsData]);
 
   let childNode = children;
-  let fieldNode = <Input autoComplete="off" ref={inputRef} />;
+  let fieldNode = <Input autoComplete="off" ref={inputRef} {...formFieldProps}/>;
 
   if (renderFormInput) {
     fieldNode = <FieldWrap

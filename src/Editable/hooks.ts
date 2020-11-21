@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { omit, isArray, isFunction } from 'lodash';
+import { omit, isArray, isFunction, isNumber } from 'lodash';
+import { getEditableIdByIndex } from './utils';
 
 interface useEditableState<recordType extends {editable_id: number; } = any, R = Partial<recordType>> {
   (val: {
@@ -21,16 +22,18 @@ interface useEditableStateReturnType<R> {
 export const useEditableState = <RT = any, R = Partial<RT>>({
   value,
   defaultData,
+  defaultValue = [],
   onChange,
   max,
 }: {
+  defaultValue?: R[];
   value?: R[];
   defaultData?: R;
   onChange?: (val: R[]) => void;
   max?: number;
 }) : useEditableStateReturnType<R> => {
-  const [_state, setState] = useState<R[]>([]);
-  const [settingId, handleEdit] = useState<React.Key>(); 
+  const [_state, setState] = useState<R[]>(Array.isArray(defaultValue) ? defaultValue : []);
+  const [settingId, setSettingId] = useState<React.Key>(); 
   const stateRef = useRef<R[]>([]);
 
   stateRef.current = useMemo(() => {
@@ -38,7 +41,7 @@ export const useEditableState = <RT = any, R = Partial<RT>>({
     const end = max || list.length;
     return list.slice(0, end).map((item, index: number) => ({
       ...item,
-      editable_id: index,
+      editable_id: getEditableIdByIndex(index),
     }))
   }, [value, _state]);
 
@@ -58,7 +61,13 @@ export const useEditableState = <RT = any, R = Partial<RT>>({
   }, []);
 
   const handleDelete = useCallback((key: React.Key) => {
-    handleChange(stateRef.current.filter((item: any) => item.editable_id !== key));
+    const k = getEditableIdByIndex(key);
+    handleChange(stateRef.current.filter((item: any) => item.editable_id !== k));
+  }, []);
+
+  const handleEdit = useCallback((key: React.Key) => {
+    const k = getEditableIdByIndex(key);
+    setSettingId(k);
   }, []);
 
   const setRowsData = useCallback((rowData: any, rowIndex: number) => {

@@ -15,6 +15,10 @@ export interface EditableContextType<R = any> {
 }
 export interface EditableRowContextType {
   form: FormInstance;
+  addWaitSaveName: (name: React.Key) => void; // 添加防抖函数等待保存字段；
+  removeWaitSaveName: (name: React.Key) => void;
+  // 防抖函数等待保存字段名列表,全表编辑的时候，数据变化话，保存数据会有一个等待时间，waitSaveName为等待保存的字段名列表
+  waitSaveNames: React.Key[];
 }
 
 // 默认函数，在正常使用时，默认值会被覆盖，所以在注册值之前使用可给出统一的警告；
@@ -29,4 +33,7 @@ export const EditableContext = React.createContext<EditableContextType>({
 
 export const EditableRowContext = React.createContext<EditableRowContextType>({
   form: Form.useForm()[0],
+  waitSaveNames: [],
+  addWaitSaveName: () => {},
+  removeWaitSaveName: () => {},
 });
