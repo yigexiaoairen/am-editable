@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { omit, isArray, isFunction, isNumber } from 'lodash';
-import { getEditableIdByIndex } from './utils';
+import { getEditableIdByIndex, getIndexByEditableId } from './utils';
 
 interface useEditableState<
   recordType extends { editable_id: number } = any,
@@ -75,13 +75,14 @@ export const useEditableState = <R = any>({
     setSettingId(k);
   }, []);
 
-  const setRowsData = useCallback((rowData: any, rowIndex: number) => {
+  const setRowsData = useCallback((rowData: any, id: React.Key) => {
+    const index = getIndexByEditableId(id);
     const newRowData = {
-      ...stateRef.current[rowIndex],
+      ...stateRef.current[index as number],
       ...omit(rowData, ['editable_id']),
     };
     const list = [...stateRef.current];
-    list[rowIndex] = newRowData;
+    list[index as number] = newRowData;
     handleChange(list);
   }, []);
 
