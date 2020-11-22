@@ -1,6 +1,6 @@
 # am-editable
 
-## 开始使用
+## 开始使用 [am-editable](https://yigexiaoairen.github.io)
 
 npm 安装,
 
