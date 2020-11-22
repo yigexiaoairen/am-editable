@@ -4,6 +4,10 @@ const config = defineConfig({
   mode: 'site',
   title: 'am-editable',
   outputPath: 'docs-dist',
+  history: {
+    type: 'hash',
+  },
+  hash: true,
   // more config: https://d.umijs.org/config,
   theme: {
     '@s-site-menu-width': '208px',
