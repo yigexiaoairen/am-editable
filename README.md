@@ -1,15 +1,17 @@
----
-title: 开始使用
----
-
 # am-editable
 
 ## 开始使用
 
-Install dependencies,
+npm 安装,
 
 ```bash
-$ npm i
+$ npm i am-editable --save
+```
+
+yarn 安装,
+
+```bash
+$ yarn add am-editable --save
 ```
 
 Start the dev server,

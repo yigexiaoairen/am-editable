@@ -1,9 +1,6 @@
 import { FormInstance } from 'antd/lib/form';
 import React from 'react';
 
-import { Form } from 'antd';
-
-
 export interface EditableContextType<R = any> {
   fieldNames: string[];
   setRowsData: (rowData: R, rowIndex: number) => void;
@@ -22,7 +19,7 @@ export interface EditableRowContextType {
 }
 
 // 默认函数，在正常使用时，默认值会被覆盖，所以在注册值之前使用可给出统一的警告；
-const defaultFun = () => {}
+const defaultFun = () => {};
 
 export const EditableContext = React.createContext<EditableContextType>({
   fieldNames: [], // 可编辑表单单元格form表单的name列表
@@ -32,7 +29,7 @@ export const EditableContext = React.createContext<EditableContextType>({
 });
 
 export const EditableRowContext = React.createContext<EditableRowContextType>({
-  form: Form.useForm()[0],
+  form: {} as any, // 设置form默认值，正确使用，此值将会被覆盖
   waitSaveNames: [],
   addWaitSaveName: () => {},
   removeWaitSaveName: () => {},

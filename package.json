@@ -1,7 +1,6 @@
 {
-  "private": true,
-  "name": "dumi",
-  "version": "1.0.0",
+  "name": "am-editable",
+  "version": "0.0.1",
   "scripts": {
     "start": "dumi dev",
     "docs:build": "dumi build",
@@ -19,6 +18,19 @@
   "gitHooks": {
     "pre-commit": "lint-staged"
   },
+  "keywords": [
+    "antd",
+    "editable",
+    "ant-design"
+  ],
+  "homepage": "https://yigexiaoairen.github.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yigexiaoairen/am-editable"
+  },
+  "files": [
+    "dist"
+  ],
   "lint-staged": {
     "*.{js,jsx,less,md,json}": [
       "prettier --write"
@@ -28,11 +40,12 @@
     ]
   },
   "dependencies": {
-    "antd": "^4.8.2",
-    "react": "^16.12.0"
+    "lodash": "^4.17.20",
+    "antd": "^4.2.0"
   },
   "peerDependencies": {
-    "lodash": "^4.17.20"
+    "react": "^16.8.4",
+    "react-dom": "^16.8.4"
   },
   "devDependencies": {
     "@umijs/test": "^3.0.5",
