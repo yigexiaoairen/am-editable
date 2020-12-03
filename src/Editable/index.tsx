@@ -6,13 +6,6 @@ import React, {
   useEffect,
 } from 'react';
 import {
-  ColumnsType,
-  ColumnType,
-  ColumnGroupType,
-  TableProps,
-} from 'antd/lib/table';
-import { FormItemProps } from 'antd/lib/form';
-import {
   pick,
   has,
   isArray,
@@ -21,10 +14,17 @@ import {
   isObject,
   concat,
 } from 'lodash';
+import {
+  ColumnsType,
+  ColumnType,
+  ColumnGroupType,
+  TableProps,
+} from 'antd/lib/table';
+import { FormItemProps } from 'antd/lib/form';
 import { ButtonProps } from 'antd/lib/button';
 import { SpaceProps } from 'antd/lib/space';
 
-import { Table, Input, Button, Popconfirm, Form, Space } from 'antd';
+import { Table, Button, Space } from 'antd';
 
 import { EditableContext } from './context';
 import { useEditableState } from './hooks';
@@ -33,7 +33,13 @@ import EditableCell, {
   EditableCellProps,
   renderFormInputType,
 } from './EditableCell';
-import { OptionDelete, OptionEdit, OptionCancel, OptionSave } from './options';
+import {
+  OptionDelete,
+  OptionEdit,
+  OptionCancel,
+  OptionSave,
+  OptionSequence,
+} from './options';
 
 export interface actionRefType<R = any> {
   setRowsData: (rowData: R, rowIndex: number) => void;
@@ -60,6 +66,7 @@ export interface FieldType<RecordType = any, k extends keyof RecordType = any>
 }
 
 export interface EditableTableProps<R = any> {
+  sortMode?: 'drag' | 'popover' | false; // 拖动排序方式，拖拽手柄排序，序列号气泡输入排序；默认关闭
   fields: FieldType<R>[];
   value?: R[];
   defaultValue?: R[]; // 表格默认数据
@@ -120,6 +127,7 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     optionSpaceProps,
     optionRender,
     multiple = true,
+    sortMode = false,
   } = props;
 
   const fieldNamesRef = useRef<string[]>([]);
@@ -137,6 +145,7 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     setRowsData,
     handleDelete,
     handleEdit,
+    move,
     settingId,
     isSetting,
   } = useEditableState<R>({
@@ -269,6 +278,18 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     return list;
   }, []);
 
+  // 气泡排序
+  if (sortMode === 'popover') {
+    columns.unshift({
+      dataIndex: '_index',
+      title: '序号',
+      width: 80,
+      render: (_, record, index) => {
+        return <OptionSequence id={record.editable_id} rowIndex={index} />;
+      },
+    });
+  }
+
   return (
     <EditableContext.Provider
       value={{
@@ -276,9 +297,11 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
         setRowsData,
         handleDelete,
         handleEdit,
+        move,
         settingId,
         multiple,
         isSetting,
+        state,
       }}
     >
       <div>

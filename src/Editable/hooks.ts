@@ -20,6 +20,7 @@ interface useEditableStateReturnType<R> {
   handleEdit: (key: React.Key) => void;
   settingId?: React.Key;
   isSetting?: boolean; // 单行编辑的时候是否，有选项正在编辑
+  move: (id: React.Key, toIndex: number) => void;
 }
 
 export const useEditableState = <R = any>({
@@ -86,12 +87,25 @@ export const useEditableState = <R = any>({
     handleChange(list);
   }, []);
 
+  const move = (id: React.Key, toIndex: number) => {
+    const rowIndex = getIndexByEditableId(id);
+    if (toIndex === rowIndex || !isNumber(rowIndex) || !isNumber(toIndex))
+      return;
+    const list = [...stateRef.current];
+    const item = list.splice(rowIndex, 1)[0];
+    if (item) {
+      list.splice(toIndex, 0, item);
+      handleChange(list);
+    }
+  };
+
   return {
     state: stateRef.current,
     handleAdd,
     setRowsData,
     handleDelete,
     handleEdit,
+    move,
     settingId,
     isSetting:
       stateRef.current.findIndex(
