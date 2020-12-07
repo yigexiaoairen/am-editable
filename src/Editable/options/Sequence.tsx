@@ -12,13 +12,29 @@ interface SequenceProps extends OptionComponentProps {
 const Sequence: React.FC<SequenceProps> = props => {
   const { rowIndex, id } = props;
 
-  const { state, move, isSetting, multiple } = useContext(EditableContext);
+  const {
+    state,
+    move,
+    isSetting,
+    multiple,
+    setSequenceId,
+    sequenceId,
+  } = useContext(EditableContext);
   const [visible, toogleVisible] = useState(false);
   const [count, setCount] = useState<number>();
 
+  const handleToogleVisible = (vis: boolean) => {
+    if (!sequenceId || !vis) toogleVisible(vis);
+    if (vis) {
+      setSequenceId(id);
+    } else {
+      setSequenceId(undefined);
+    }
+  };
+
   useEffect(() => {
     if (isSetting && visible) {
-      toogleVisible(false);
+      handleToogleVisible(false);
     }
   }, [isSetting]);
   useEffect(() => {
@@ -43,7 +59,7 @@ const Sequence: React.FC<SequenceProps> = props => {
             />
           </div>
           <Space style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button size="small" onClick={() => toogleVisible(false)}>
+            <Button size="small" onClick={() => handleToogleVisible(false)}>
               取消
             </Button>
             <Button
@@ -51,7 +67,7 @@ const Sequence: React.FC<SequenceProps> = props => {
               size="small"
               onClick={() => {
                 if (typeof count === 'number') move(id, count - 1);
-                toogleVisible(false);
+                handleToogleVisible(false);
               }}
             >
               确认
@@ -63,7 +79,7 @@ const Sequence: React.FC<SequenceProps> = props => {
       <Button
         type="text"
         size="small"
-        onClick={() => toogleVisible(true)}
+        onClick={() => handleToogleVisible(true)}
         disabled={!multiple && isSetting}
         style={{ width: 60 }}
       >

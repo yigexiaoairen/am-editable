@@ -21,6 +21,8 @@ interface useEditableStateReturnType<R> {
   settingId?: React.Key;
   isSetting?: boolean; // 单行编辑的时候是否，有选项正在编辑
   move: (id: React.Key, toIndex: number) => void;
+  sequenceId?: React.Key; // 当前正在设置排序的key；
+  setSequenceId: (key?: React.Key) => void;
 }
 
 export const useEditableState = <R = any>({
@@ -40,6 +42,7 @@ export const useEditableState = <R = any>({
     Array.isArray(defaultValue) ? defaultValue : [],
   );
   const [settingId, setSettingId] = useState<React.Key>();
+  const [sequenceId, setSequenceId] = useState<React.Key>();
   const stateRef = useRef<R[]>([]);
 
   stateRef.current = useMemo(() => {
@@ -107,6 +110,8 @@ export const useEditableState = <R = any>({
     handleEdit,
     move,
     settingId,
+    sequenceId,
+    setSequenceId,
     isSetting:
       stateRef.current.findIndex(
         (record: any) => record.editable_id === settingId,

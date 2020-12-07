@@ -10,6 +10,8 @@ export interface EditableContextType<R = any> {
   settingId?: React.Key;
   multiple?: boolean;
   isSetting?: boolean; // 单行编辑的时候是否有选项正在编辑
+  sequenceId?: React.Key; // 当前正在设置排序的key；
+  setSequenceId: (key?: React.Key) => void;
   state: R[];
 }
 export interface EditableRowContextType {
@@ -29,6 +31,7 @@ export const EditableContext = React.createContext<EditableContextType>({
   handleDelete: defaultFun,
   handleEdit: defaultFun,
   move: defaultFun,
+  setSequenceId: defaultFun,
   state: [],
 });
 

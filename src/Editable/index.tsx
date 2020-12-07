@@ -4,6 +4,7 @@ import React, {
   useRef,
   useCallback,
   useEffect,
+  useState,
 } from 'react';
 import {
   pick,
@@ -126,10 +127,12 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     optionExtraAfter,
     optionSpaceProps,
     optionRender,
-    multiple = true,
+    multiple: mult = true,
     sortMode = false,
   } = props;
 
+  // 多行编辑和单行编辑不支持动态切换，因为切换之后有问题，后期可能会支持动态切换；
+  const [multiple] = useState(mult);
   const fieldNamesRef = useRef<string[]>([]);
   const actionRef = useRef<actionRefType>({
     setRowsData: () => {},
@@ -148,6 +151,8 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     move,
     settingId,
     isSetting,
+    sequenceId,
+    setSequenceId,
   } = useEditableState<R>({
     value: has(props, 'value') && !value ? [] : value,
     defaultValue,
@@ -275,20 +280,19 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
         return optionsNode;
       },
     });
+    // 气泡排序
+    if (sortMode === 'popover') {
+      list.unshift({
+        dataIndex: '_index',
+        title: '序号',
+        width: 80,
+        render: (_, record, index) => {
+          return <OptionSequence id={record.editable_id} rowIndex={index} />;
+        },
+      });
+    }
     return list;
-  }, []);
-
-  // 气泡排序
-  if (sortMode === 'popover') {
-    columns.unshift({
-      dataIndex: '_index',
-      title: '序号',
-      width: 80,
-      render: (_, record, index) => {
-        return <OptionSequence id={record.editable_id} rowIndex={index} />;
-      },
-    });
-  }
+  }, [sortMode, fields, multiple]);
 
   return (
     <EditableContext.Provider
@@ -302,6 +306,8 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
         multiple,
         isSetting,
         state,
+        setSequenceId,
+        sequenceId,
       }}
     >
       <div>

@@ -8,9 +8,9 @@ nav:
 ## 单行编辑
 
 ```tsx
-import React from 'react';
+import React, { useState, useReducer } from 'react';
 import { Editable } from 'am-editable';
-import { Input, Button, InputNumber } from 'antd';
+import { Input, Button, InputNumber, Space } from 'antd';
 
 const fields = [
   {
@@ -50,20 +50,33 @@ const fields = [
 ];
 
 export default () => {
+  const [canSort, setCanSort] = useState(true);
+  const [hideAddBtn, toogleHideAddBtn] = useReducer(state => {
+    return !state;
+  }, false);
   return (
-    <div>
+    <Space direction="vertical" style={{ display: 'flex' }}>
+      <Space>
+        <Button onClick={() => setCanSort(!canSort)}>
+          {canSort ? '关闭排序' : '开启排序'}
+        </Button>
+        <Button onClick={toogleHideAddBtn}>
+          {hideAddBtn ? '显示新增按钮' : '隐藏新增按钮'}
+        </Button>
+      </Space>
       <Editable
+        sortMode={canSort && 'popover'}
         defaultData={{ age: 90 }}
         fields={fields}
         multiple={false}
-        max={3}
+        hideAddBtn={hideAddBtn}
+        max={10}
         defaultValue={[{ name: '小明', age: 18, height: 175, address: '杭州' }]}
-        // optionExtraBefore = {<Button size="small">预览</Button>}
         onChange={val => {
           console.log(val);
         }}
       />
-    </div>
+    </Space>
   );
 };
 ```
