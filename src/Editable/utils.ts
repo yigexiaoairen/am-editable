@@ -8,5 +8,5 @@ export const getEditableIdByIndex = (index: React.Key): React.Key => {
 };
 
 export const getIndexByEditableId = (id: React.Key): React.Key => {
-  return isString(id) && id.indexOf('editable_') === 0 ? id.slice(9) : id;
+  return isString(id) && id.indexOf('editable_') === 0 ? +id.slice(9) : id;
 };

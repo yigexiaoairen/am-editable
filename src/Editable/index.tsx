@@ -4,14 +4,8 @@ import React, {
   useRef,
   useCallback,
   useEffect,
+  useState,
 } from 'react';
-import {
-  ColumnsType,
-  ColumnType,
-  ColumnGroupType,
-  TableProps,
-} from 'antd/lib/table';
-import { FormItemProps } from 'antd/lib/form';
 import {
   pick,
   has,
@@ -21,10 +15,17 @@ import {
   isObject,
   concat,
 } from 'lodash';
+import {
+  ColumnsType,
+  ColumnType,
+  ColumnGroupType,
+  TableProps,
+} from 'antd/lib/table';
+import { FormItemProps } from 'antd/lib/form';
 import { ButtonProps } from 'antd/lib/button';
 import { SpaceProps } from 'antd/lib/space';
 
-import { Table, Input, Button, Popconfirm, Form, Space } from 'antd';
+import { Table, Button, Space } from 'antd';
 
 import { EditableContext } from './context';
 import { useEditableState } from './hooks';
@@ -33,7 +34,13 @@ import EditableCell, {
   EditableCellProps,
   renderFormInputType,
 } from './EditableCell';
-import { OptionDelete, OptionEdit, OptionCancel, OptionSave } from './options';
+import {
+  OptionDelete,
+  OptionEdit,
+  OptionCancel,
+  OptionSave,
+  OptionSequence,
+} from './options';
 
 export interface actionRefType<R = any> {
   setRowsData: (rowData: R, rowIndex: number) => void;
@@ -60,6 +67,7 @@ export interface FieldType<RecordType = any, k extends keyof RecordType = any>
 }
 
 export interface EditableTableProps<R = any> {
+  sortMode?: 'drag' | 'popover' | false; // 拖动排序方式，拖拽手柄排序，序列号气泡输入排序；默认关闭
   fields: FieldType<R>[];
   value?: R[];
   defaultValue?: R[]; // 表格默认数据
@@ -119,9 +127,12 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     optionExtraAfter,
     optionSpaceProps,
     optionRender,
-    multiple = true,
+    multiple: mult = true,
+    sortMode = false,
   } = props;
 
+  // 多行编辑和单行编辑不支持动态切换，因为切换之后有问题，后期可能会支持动态切换；
+  const [multiple] = useState(mult);
   const fieldNamesRef = useRef<string[]>([]);
   const actionRef = useRef<actionRefType>({
     setRowsData: () => {},
@@ -137,8 +148,11 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     setRowsData,
     handleDelete,
     handleEdit,
+    move,
     settingId,
     isSetting,
+    sequenceId,
+    setSequenceId,
   } = useEditableState<R>({
     value: has(props, 'value') && !value ? [] : value,
     defaultValue,
@@ -266,8 +280,19 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
         return optionsNode;
       },
     });
+    // 气泡排序
+    if (sortMode === 'popover') {
+      list.unshift({
+        dataIndex: '_index',
+        title: '序号',
+        width: 80,
+        render: (_, record, index) => {
+          return <OptionSequence id={record.editable_id} rowIndex={index} />;
+        },
+      });
+    }
     return list;
-  }, []);
+  }, [sortMode, fields, multiple]);
 
   return (
     <EditableContext.Provider
@@ -276,9 +301,13 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
         setRowsData,
         handleDelete,
         handleEdit,
+        move,
         settingId,
         multiple,
         isSetting,
+        state,
+        setSequenceId,
+        sequenceId,
       }}
     >
       <div>
