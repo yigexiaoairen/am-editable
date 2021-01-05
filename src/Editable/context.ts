@@ -13,6 +13,9 @@ export interface EditableContextType<R = any> {
   sequenceId?: React.Key; // 当前正在设置排序的key；
   setSequenceId: (key?: React.Key) => void;
   state: R[];
+  errorMap: { [name: string]: any };
+  addErrorMapItem: (id: string, errors: any) => void;
+  removeErrorMapItem: (id: string) => void;
 }
 export interface EditableRowContextType {
   form: FormInstance;
@@ -20,6 +23,7 @@ export interface EditableRowContextType {
   removeWaitSaveName: (name: React.Key) => void;
   // 防抖函数等待保存字段名列表,全表编辑的时候，数据变化话，保存数据会有一个等待时间，waitSaveName为等待保存的字段名列表
   waitSaveNames: React.Key[];
+  rowId: string; // 当前行唯一标示，等于record._key_id
 }
 
 // 默认函数，在正常使用时，默认值会被覆盖，所以在注册值之前使用可给出统一的警告；
@@ -33,6 +37,9 @@ export const EditableContext = React.createContext<EditableContextType>({
   move: defaultFun,
   setSequenceId: defaultFun,
   state: [],
+  errorMap: {},
+  addErrorMapItem: defaultFun,
+  removeErrorMapItem: defaultFun,
 });
 
 export const EditableRowContext = React.createContext<EditableRowContextType>({
@@ -40,4 +47,5 @@ export const EditableRowContext = React.createContext<EditableRowContextType>({
   waitSaveNames: [],
   addWaitSaveName: () => {},
   removeWaitSaveName: () => {},
+  rowId: '',
 });

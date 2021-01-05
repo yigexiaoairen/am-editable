@@ -40,8 +40,8 @@
     ]
   },
   "dependencies": {
-    "lodash": "^4.17.20",
-    "antd": "^4.2.0"
+    "antd": "^4.4.3",
+    "lodash": "^4.17.20"
   },
   "peerDependencies": {
     "react": "^16.8.4",

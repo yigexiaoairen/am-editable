@@ -1,27 +1,40 @@
+import React, {
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from 'react';
+import { isEqual, get, pick, has, concat, add } from 'lodash';
 
-import React, { useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { isEqual, get, pick, has, concat } from 'lodash';
-
+import { FormInstance } from 'antd/lib/form';
 import { Form } from 'antd';
 
 import { EditableRowContext, EditableContext } from './context';
 
-export type onRowValuesChangeType<R = any> = (val: any, opt: {
-  rowIndex: number;
-  setRowsData: (rowData: R, rowIndex?: number) => void;
-  record: R;
-}) => void;
+export type onRowValuesChangeType<R = any> = (
+  val: any,
+  opt: {
+    rowIndex: number;
+    setRowsData: (rowData: R, rowIndex?: number) => void;
+    record: R;
+  },
+) => void;
 
 export interface EditableRowProps<R = any> {
   index: number;
   record?: R;
   onRowValuesChange?: onRowValuesChangeType;
+  addValidateFun?: (fun: FormInstance['validateFields']) => void;
+  removeValidateFun?: (fun: FormInstance['validateFields']) => void;
 }
 
 const EditableRow: React.FC<EditableRowProps> = ({
   index,
   record,
   onRowValuesChange,
+  addValidateFun,
+  removeValidateFun,
   ...props
 }) => {
   const [form] = Form.useForm();
@@ -45,20 +58,37 @@ const EditableRow: React.FC<EditableRowProps> = ({
   }, []);
 
   useEffect(() => {
+    if (typeof addValidateFun === 'function') {
+      addValidateFun(form.validateFields);
+    }
+    console.log('componentDidMount');
+    return () => {
+      console.log('componentBeforeUnmount');
+      if (typeof removeValidateFun === 'function') {
+        removeValidateFun(form.validateFields);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (
       (!isEqual(recordPreRef.current, record) && multiple) ||
       (!multiple && settingId === record?.editable_id)
     ) {
       const resetFields = fieldNames.filter(name => {
         // 如果新的数据里面没有值，就重置当前字段，防止表格长度变化（删除、新增数据）的时候表单保留旧值；
-        return !has(record, name) &&
+        return (
+          !has(record, name) &&
           !isEqual(get(record, name), get(recordPreRef.current, name)) &&
-          waitSaveNamesRef.current.findIndex(n => n === name) === -1;
+          waitSaveNamesRef.current.findIndex(n => n === name) === -1
+        );
       });
       // 当行数据变化时，更新变化的数据；
       const setFieldsName = fieldNames.filter(name => {
-        return !isEqual(get(record, name), get(recordPreRef.current, name)) &&
-          waitSaveNamesRef.current.findIndex(n => n === name) === -1;
+        return (
+          !isEqual(get(record, name), get(recordPreRef.current, name)) &&
+          waitSaveNamesRef.current.findIndex(n => n === name) === -1
+        );
       });
       form.resetFields(resetFields);
       if (multiple) {
@@ -75,9 +105,9 @@ const EditableRow: React.FC<EditableRowProps> = ({
   }, [record, isSetting, multiple]);
   return (
     <Form
-      name={`editable_${index! + 1}_`}
+      name={`editable_${record?._key_id}_`}
       form={form}
-      onValuesChange={(values) => {
+      onValuesChange={values => {
         if (typeof onRowValuesChange === 'function') {
           onRowValuesChange(values, {
             rowIndex: index,
@@ -87,17 +117,21 @@ const EditableRow: React.FC<EditableRowProps> = ({
             },
             setRowsData: (row, rowI = index) => {
               setRowsData(row, rowI);
-            }
-          })
+            },
+          });
         }
       }}
-      component={false}>
-      <EditableRowContext.Provider value={{
-        form,
-        waitSaveNames: waitSaveNamesRef.current,
-        addWaitSaveName,
-        removeWaitSaveName,
-      }}>
+      component={false}
+    >
+      <EditableRowContext.Provider
+        value={{
+          form,
+          waitSaveNames: waitSaveNamesRef.current,
+          addWaitSaveName,
+          removeWaitSaveName,
+          rowId: record?._key_id,
+        }}
+      >
         <tr {...props} />
       </EditableRowContext.Provider>
     </Form>

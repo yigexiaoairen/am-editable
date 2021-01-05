@@ -18,6 +18,9 @@ const fields = [
     id: 'name',
     width: '30%',
     editable: true,
+    formItemProps: {
+      rules: [{ required: true, message: '请输入姓名' }],
+    },
   },
   {
     title: '简介',
@@ -84,7 +87,7 @@ export default () => {
 ## 全表可编辑编辑
 
 ```tsx
-import React from 'react';
+import React, { useRef } from 'react';
 import { Editable } from 'am-editable';
 import { Input, Button, InputNumber } from 'antd';
 
@@ -94,6 +97,9 @@ const fields = [
     id: 'name',
     width: '30%',
     editable: true,
+    formItemProps: {
+      rules: [{ required: true, message: '请输入姓名' }],
+    },
   },
   {
     title: '简介',
@@ -125,10 +131,19 @@ const fields = [
 ];
 
 export default () => {
+  const actionRef = useRef();
   return (
     <div>
+      <Button
+        onClick={() => {
+          actionRef.current.handleValidate().catch(console.log);
+        }}
+      >
+        验证
+      </Button>
       <Editable
         defaultData={{ age: 90 }}
+        getActionRef={ref => (actionRef.current = ref.current)}
         fields={fields}
         onChange={val => {
           console.log(val);

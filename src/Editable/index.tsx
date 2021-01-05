@@ -21,14 +21,14 @@ import {
   ColumnGroupType,
   TableProps,
 } from 'antd/lib/table';
-import { FormItemProps } from 'antd/lib/form';
+import { InternalFieldProps } from 'rc-field-form/lib/Field';
 import { ButtonProps } from 'antd/lib/button';
 import { SpaceProps } from 'antd/lib/space';
 
 import { Table, Button, Space } from 'antd';
 
 import { EditableContext } from './context';
-import { useEditableState } from './hooks';
+import { useEditableState, useValidateObservers } from './hooks';
 import EditableRow, { onRowValuesChangeType } from './EditableRow';
 import EditableCell, {
   EditableCellProps,
@@ -47,6 +47,7 @@ export interface actionRefType<R = any> {
   handleAdd: (v?: R) => void;
   handleDelete: (key: React.Key) => void;
   handleEdit: (key: React.Key) => void;
+  handleValidate: () => void;
 }
 
 export type optionExtraElementType = React.ReactElement | React.ReactElement[];
@@ -58,7 +59,7 @@ export interface FieldType<RecordType = any, k extends keyof RecordType = any>
   extends Pick<EditableCellProps<RecordType>, 'trigger'> {
   title: string;
   id: k | React.Key; // 当前列对应字段名
-  formItemProps?: FormItemProps<RecordType>;
+  formItemProps?: InternalFieldProps;
   formFieldProps?: object;
   column?: ColumnType<RecordType>;
   children?: FieldType<RecordType, k>[];
@@ -131,6 +132,12 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     sortMode = false,
   } = props;
 
+  const {
+    addValidateFun,
+    removeValidateFun,
+    notifyObservers,
+  } = useValidateObservers();
+
   // 多行编辑和单行编辑不支持动态切换，因为切换之后有问题，后期可能会支持动态切换；
   const [multiple] = useState(mult);
   const fieldNamesRef = useRef<string[]>([]);
@@ -139,6 +146,7 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     handleAdd: () => {},
     handleDelete: () => {},
     handleEdit: () => {},
+    handleValidate: notifyObservers,
   });
 
   // 区分设置value为undefined和未设置值的情况
@@ -153,6 +161,9 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     isSetting,
     sequenceId,
     setSequenceId,
+    errorMap,
+    addErrorMapItem,
+    removeErrorMapItem,
   } = useEditableState<R>({
     value: has(props, 'value') && !value ? [] : value,
     defaultValue,
@@ -294,6 +305,11 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     return list;
   }, [sortMode, fields, multiple]);
 
+  useEffect(() => {
+    console.log('index');
+    return () => console.log('1');
+  }, []);
+
   return (
     <EditableContext.Provider
       value={{
@@ -308,6 +324,9 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
         state,
         setSequenceId,
         sequenceId,
+        errorMap,
+        addErrorMapItem,
+        removeErrorMapItem,
       }}
     >
       <div>
@@ -315,7 +334,7 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
           bordered
           {...tableProps}
           pagination={false}
-          rowKey="editable_id"
+          rowKey="_key_id"
           components={{
             body: {
               row: EditableRow,
@@ -329,6 +348,8 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
               record,
               index,
               onRowValuesChange,
+              addValidateFun,
+              removeValidateFun,
             };
           }}
         />
