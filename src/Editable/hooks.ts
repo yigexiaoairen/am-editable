@@ -1,9 +1,11 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
-import { omit, isArray, isFunction, isNumber } from 'lodash';
+import { omit, isArray, isFunction, isNumber, get, set } from 'lodash';
+import { FormInstance } from 'antd/lib/form';
 import { getEditableIdByIndex, getIndexByEditableId } from './utils';
+import { EditableContextType } from './context';
 
 interface useEditableState<
-  recordType extends { editable_id: number } = any,
+  recordType extends { editable_id: number; _key_id: number } = any,
   R = Partial<recordType>
 > {
   (val: { value: R[]; defaultData: R }): {
@@ -12,7 +14,11 @@ interface useEditableState<
   };
 }
 
-interface useEditableStateReturnType<R> {
+interface useEditableStateReturnType<R>
+  extends Pick<
+    EditableContextType,
+    'errorMap' | 'addErrorMapItem' | 'removeErrorMapItem'
+  > {
   state: R[];
   handleAdd: (v?: R) => void;
   setRowsData: (rowData: R, rowIndex: number) => void;
@@ -38,6 +44,8 @@ export const useEditableState = <R = any>({
   onChange?: (val: R[]) => void;
   max?: number;
 }): useEditableStateReturnType<R> => {
+  const keyIdRef = useRef(1);
+  const errorMapRef = useRef<{ [name: string]: any }>({});
   const [_state, setState] = useState<R[]>(
     Array.isArray(defaultValue) ? defaultValue : [],
   );
@@ -51,6 +59,7 @@ export const useEditableState = <R = any>({
     return list.slice(0, end).map((item, index: number) => ({
       ...item,
       editable_id: getEditableIdByIndex(index),
+      _key_id: get(item, '_key_id') || keyIdRef.current++,
     }));
   }, [value, _state]);
 
@@ -102,6 +111,13 @@ export const useEditableState = <R = any>({
     }
   };
 
+  const addErrorMapItem = useCallback((id: string, errors: any) => {
+    set(errorMapRef.current, id, errors);
+  }, []);
+  const removeErrorMapItem = useCallback((id: string) => {
+    delete errorMapRef.current[id];
+  }, []);
+
   return {
     state: stateRef.current,
     handleAdd,
@@ -116,5 +132,50 @@ export const useEditableState = <R = any>({
       stateRef.current.findIndex(
         (record: any) => record.editable_id === settingId,
       ) >= 0,
+    errorMap: errorMapRef.current,
+    addErrorMapItem,
+    removeErrorMapItem,
+  };
+};
+
+export const useValidateObservers = () => {
+  const validatesRef = useRef<FormInstance['validateFields'][]>([]);
+
+  const addValidateFun = useCallback((fun: FormInstance['validateFields']) => {
+    if (validatesRef.current.findIndex(f => f === fun) === -1) {
+      validatesRef.current.push(fun);
+    }
+  }, []);
+  const removeValidateFun = useCallback(
+    (fun: FormInstance['validateFields']) => {
+      const index = validatesRef.current.findIndex(f => f === fun);
+      if (index >= 0) {
+        validatesRef.current.splice(index, 1);
+      }
+    },
+    [],
+  );
+
+  const notifyObservers = useCallback(async () => {
+    const errors = (
+      await Promise.all(
+        validatesRef.current.map(async fun => {
+          const res = fun()
+            .then(() => null)
+            .catch(err => err);
+          return res;
+        }),
+      )
+    ).filter(item => item);
+    if (errors?.length) {
+      return Promise.reject(errors.flat());
+    }
+    return Promise.resolve(null);
+  }, []);
+
+  return {
+    addValidateFun,
+    removeValidateFun,
+    notifyObservers,
   };
 };

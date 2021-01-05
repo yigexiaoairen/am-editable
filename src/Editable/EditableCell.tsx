@@ -1,12 +1,13 @@
 import React, { useCallback, useRef, useContext, useEffect } from 'react';
 import { FormInstance, FormItemProps } from 'antd/lib/form';
 import { isFunction, has, debounce, assign, set } from 'lodash';
+import { NamePath } from 'rc-field-form/lib/interface';
+import { InternalFieldProps } from 'rc-field-form/lib/Field';
 
 import { Input, Form } from 'antd';
-
+import FormItem from './FormItem';
 import { EditableRowContext, EditableContext } from './context';
 import FieldWrap from './FieldWrap';
-import { NamePath } from 'antd/lib/form/interface';
 
 interface RFIOptionType<R = any> {
   value: R[];
@@ -26,9 +27,12 @@ export interface EditableCellProps<Record = any> {
   record: Record;
   handleSave: (values: Partial<Record>) => void;
   renderFormInput?: renderFormInputType<Record>;
-  formItemProps?: FormItemProps<Record>;
+  formItemProps?: InternalFieldProps;
   formFieldProps?: object;
-  setRowsData: (rowData: Partial<Record>, rowIndex: number) => void;
+  setRowsData: (
+    rowData: Partial<Record> | { [name: string]: any },
+    rowIndex: number,
+  ) => void;
   trigger?: 'onChange' | 'onBlur'; // 数据保存的时机；
 }
 
@@ -53,7 +57,7 @@ const EditableCell = <RecordType extends { editable_id: React.Key } = any>({
   );
   const formRef = useRef<FormInstance>({ ...form });
   const { multiple, settingId } = useContext(EditableContext);
-  const name = formItemProps?.name || dataIndex;
+  const name = formItemProps?.name || (dataIndex as any);
   const triggerStr = typeof trigger === 'string' ? trigger : 'onChange';
 
   const saveFun = useCallback(
@@ -62,7 +66,7 @@ const EditableCell = <RecordType extends { editable_id: React.Key } = any>({
       removeWaitSaveName(name as React.Key);
       setRowsData(set({}, name, val), rowIndex);
     }, 300),
-    [],
+    [rowIndex, name],
   );
   const save = (v?: any) => {
     addWaitSaveName(name as React.Key);
@@ -124,14 +128,7 @@ const EditableCell = <RecordType extends { editable_id: React.Key } = any>({
 
   if (editable && (multiple || settingId === record.editable_id)) {
     childNode = (
-      <Form.Item
-        {...formItemProps}
-        style={{
-          margin: 0,
-          ...formItemProps?.style,
-        }}
-        name={name}
-      >
+      <FormItem {...formItemProps} name={name}>
         {React.cloneElement(fieldNode, {
           ...fieldNode.props,
           [triggerStr]: (val: any) => {
@@ -148,7 +145,7 @@ const EditableCell = <RecordType extends { editable_id: React.Key } = any>({
             }
           },
         })}
-      </Form.Item>
+      </FormItem>
     );
   } else {
     childNode = children;
