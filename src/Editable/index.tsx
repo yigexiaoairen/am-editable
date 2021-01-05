@@ -47,7 +47,7 @@ export interface actionRefType<R = any> {
   handleAdd: (v?: R) => void;
   handleDelete: (key: React.Key) => void;
   handleEdit: (key: React.Key) => void;
-  handleValidate: () => void;
+  handleValidate: () => Promise<any>;
 }
 
 export type optionExtraElementType = React.ReactElement | React.ReactElement[];
