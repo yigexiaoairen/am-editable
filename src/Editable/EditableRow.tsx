@@ -61,9 +61,7 @@ const EditableRow: React.FC<EditableRowProps> = ({
     if (typeof addValidateFun === 'function') {
       addValidateFun(form.validateFields);
     }
-    console.log('componentDidMount');
     return () => {
-      console.log('componentBeforeUnmount');
       if (typeof removeValidateFun === 'function') {
         removeValidateFun(form.validateFields);
       }

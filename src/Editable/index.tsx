@@ -305,11 +305,6 @@ const EditableTable = <R extends {}>(props: EditableTableProps<R>) => {
     return list;
   }, [sortMode, fields, multiple]);
 
-  useEffect(() => {
-    console.log('index');
-    return () => console.log('1');
-  }, []);
-
   return (
     <EditableContext.Provider
       value={{

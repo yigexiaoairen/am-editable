@@ -90,7 +90,6 @@ export const useEditableState = <R = any>({
 
   const setRowsData = useCallback((rowData: any, id: React.Key) => {
     const index = getIndexByEditableId(id);
-    console.log(index);
     const newRowData = {
       ...stateRef.current[index as number],
       ...omit(rowData, ['editable_id']),
@@ -161,7 +160,9 @@ export const useValidateObservers = () => {
     const errors = (
       await Promise.all(
         validatesRef.current.map(async fun => {
-          const res = fun().then(() => null);
+          const res = fun()
+            .then(() => null)
+            .catch(err => err);
           return res;
         }),
       )
