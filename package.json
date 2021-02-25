@@ -1,6 +1,6 @@
 {
   "name": "am-editable",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "scripts": {
     "start": "dumi dev",
     "docs:build": "dumi build",
@@ -40,13 +40,13 @@
     ]
   },
   "dependencies": {
-    "antd": "^4.4.3",
-    "lodash": "^4.17.20",
-    "rc-field-form": "^1.17.3"
+    "lodash": "^4.17.20"
   },
   "peerDependencies": {
     "react": "^16.8.4",
-    "react-dom": "^16.8.4"
+    "react-dom": "^16.8.4",
+    "rc-field-form": "^1.17.3",
+    "antd": "^4.4.3"
   },
   "devDependencies": {
     "@umijs/test": "^3.0.5",
